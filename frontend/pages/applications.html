@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Applications | CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/applications.css">
+  <link rel="stylesheet" href="../css/chat.css">
+
+</head>
+<body data-page="applications">
+  <div id="site-header"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+
+  <main id="main" class="container">
+    <section class="page-intro">
+      <!-- TODO i18n -->
+      <h1>My Applications</h1>
+      <p class="lead">Track the schemes you saved and the preparation steps. Statuses are updated by you, not by the government.</p>
+    </section>
+
+    <!-- Summary -->
+    <section class="grid-4 app-summary" aria-label="Summary">
+      <div class="card">
+        <!-- TODO i18n -->
+        <p class="stat-label">Total Saved Applications</p>
+        <span class="stat-value" id="sumTotal">0</span>
+      </div>
+      <div class="card">
+        <!-- TODO i18n -->
+        <p class="stat-label">In Progress</p>
+        <span class="stat-value" id="sumInProgress">0</span>
+      </div>
+      <div class="card">
+        <!-- TODO i18n -->
+        <p class="stat-label">Upcoming Deadlines</p>
+        <span class="stat-value" id="sumDeadlines">0</span>
+      </div>
+      <div class="card">
+        <!-- TODO i18n -->
+        <p class="stat-label">Preparation Completed</p>
+        <span class="stat-value" id="sumPrepared">0</span>
+      </div>
+    </section>
+
+    <!-- Toolbar -->
+    <section class="card app-toolbar" aria-label="Search and filter">
+      <label>
+        <!-- TODO i18n -->
+        <span>Search applications</span>
+        <input id="searchInput" type="search" placeholder="Search by scheme name" autocomplete="off">
+      </label>
+      <label>
+        <!-- TODO i18n -->
+        <span>Status</span>
+        <select id="statusFilter">
+          <option value="">All statuses</option>
+          <option value="NOT_STARTED">Not Started</option>
+          <option value="PREPARING_DOCUMENTS">Preparing Documents</option>
+          <option value="READY_TO_APPLY">Ready to Apply</option>
+          <option value="APPLIED">Applied</option>
+          <option value="UNDER_REVIEW">Under Review</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- Upcoming deadlines -->
+    <section class="app-section" aria-labelledby="deadlinesHeading">
+      <!-- TODO i18n -->
+      <h2 id="deadlinesHeading">Upcoming Deadlines</h2>
+      <ul id="deadlineList" class="deadline-list"></ul>
+    </section>
+
+    <!-- Loading -->
+    <div id="loadingArea" class="stack" hidden aria-live="polite">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+
+    <!-- Application cards (rendered by applications.js) -->
+    <div id="applicationsList" class="stack" aria-live="polite"></div>
+
+    <!-- Empty: nothing saved -->
+    <div id="emptyState" class="empty-state" hidden>
+      <!-- TODO i18n -->
+      <h2>No saved applications yet.</h2>
+      <p>Save a scheme from the results or scheme details page to start tracking it.</p>
+      <a class="btn btn-primary" href="results.html">Go to results</a>
+    </div>
+
+    <!-- Empty: filters hide everything -->
+    <div id="noMatch" class="empty-state" hidden>
+      <!-- TODO i18n -->
+      <p>No applications match your search or filter.</p>
+      <button id="clearFilters" class="btn btn-secondary" type="button">Clear filters</button>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/applications.js"></script>
+
+</body>
+</html>

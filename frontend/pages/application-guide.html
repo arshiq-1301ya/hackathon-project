@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Guide | CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/guide.css">
+  <link rel="stylesheet" href="../css/chat.css">
+
+</head>
+<body data-page="application-guide">
+  <div id="site-header"></div>
+
+
+  <main id="main" class="container page-main">
+    <!-- TODO i18n: breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="discover.html">Discover Schemes</a>
+      <span aria-hidden="true">&gt;</span>
+      <span>Application guide</span>
+    </nav>
+
+    <div class="guide-head">
+      <!-- TODO i18n: page heading -->
+      <h1 id="schemeName">Application guide</h1>
+      <span id="demoBadge" class="badge-demo" hidden>Sample content</span>
+    </div>
+
+    <!-- TODO i18n: demo warning -->
+    <div class="alert alert-warning" role="note">
+      Demonstration instructions: the steps below are sample content unless the scheme has verified instructions. Follow the official portal for the latest process.
+    </div>
+
+    <div id="notFound" class="empty-state" hidden>
+      <!-- TODO i18n: not-found state -->
+      <p>Scheme not found.</p>
+      <a class="btn btn-secondary" href="discover.html">Browse schemes</a>
+    </div>
+
+    <section class="guide-progress" aria-label="Guide progress">
+      <p id="guideProgressText">Step 1 of 1</p>
+      <div class="progress">
+        <div id="guideProgressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%"></div>
+      </div>
+    </section>
+
+    <div id="stepCard" class="card step-card">
+      <h2 id="stepTitle">Loading step</h2>
+      <p id="stepBody"></p>
+    </div>
+
+    <div class="step-nav">
+      <button id="prevBtn" class="btn btn-secondary" type="button" data-i18n="btn.previous">Previous</button>
+      <button id="nextBtn" class="btn btn-primary" type="button" data-i18n="btn.next">Next</button>
+    </div>
+
+    <section class="card guide-docs">
+      <!-- TODO i18n: section heading -->
+      <h2>Required documents</h2>
+      <ul id="docSummary" class="doc-summary"></ul>
+    </section>
+
+    <section class="card guide-portal">
+      <!-- TODO i18n: portal link label -->
+      <a id="officialPortalLink" class="btn btn-ghost" rel="noopener noreferrer" target="_blank" hidden>Open official portal</a>
+
+      <!-- TODO i18n: portal note -->
+      <p id="portalNote" class="text-muted">Official portal link not yet verified.</p>
+    </section>
+
+    <div class="actions">
+      <button id="saveAppBtn" class="btn btn-primary" type="button" data-i18n="btn.save">Save Application</button>
+      <a class="btn btn-secondary" href="checklist.html">Document checklist</a>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/application-guide.js"></script>
+
+</body>
+</html>

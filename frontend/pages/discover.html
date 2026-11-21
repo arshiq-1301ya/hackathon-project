@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discover Schemes — CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/discover.css">
+  <link rel="stylesheet" href="../css/chat.css">
+
+</head>
+<body data-page="discover">
+  <div id="site-header"></div>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+
+  <main id="main">
+    <section class="section">
+      <div class="container discover-wrap">
+        <h1>Tell us about your situation</h1>
+        <!-- TODO i18n -->
+        <p class="lead">Describe your age, education, occupation, family income and what you need help with. You can write in Hindi or English.</p>
+
+        <form id="discoverForm" class="card discover-form" novalidate>
+          <div class="form-group">
+            <label for="situation" class="form-label">Your situation</label>
+            <textarea id="situation" class="textarea" name="situation" rows="8" maxlength="1000"
+              aria-describedby="situation-help situation-error"></textarea>
+            <div id="situation-help" class="field-help">
+              <!-- TODO i18n -->
+              <span>Do not enter Aadhaar numbers or other ID numbers.</span>
+              <span id="charCount" class="char-count">0 / 1000</span>
+            </div>
+            <div id="situation-error" class="field-error" role="alert" hidden></div>
+          </div>
+
+          <div class="card example-card">
+            <!-- TODO i18n -->
+            <p class="example-title">Try an example</p>
+            <div class="example-list">
+              <button type="button" class="btn btn-ghost btn-sm example-prompt"
+                data-example="I am a 22-year-old graduate from Bihar. My family income is about 3 lakh per year and I am looking for a job.">English example</button>
+              <button type="button" class="btn btn-ghost btn-sm example-prompt"
+                data-example="मैं उत्तर प्रदेश से हूँ, किसान हूँ और मेरी सालाना आय लगभग 1 लाख रुपये है।">Hindi example</button>
+              <button type="button" class="btn btn-ghost btn-sm example-prompt"
+                data-example="I am a student from Maharashtra, family income 2 lakh">Mixed example</button>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button id="clearBtn" type="button" class="btn btn-secondary" data-i18n="btn.clear">Clear</button>
+            <button id="submitBtn" type="submit" class="btn btn-primary btn-lg">
+              <span class="spinner" hidden aria-hidden="true"></span>
+              <span class="btn-label" data-i18n="btn.discover">Discover Schemes</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="loadingArea" class="card loading-area" role="status" aria-live="polite" hidden>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+          <p data-i18n="loading.default">Loading…</p>
+        </div>
+
+        <div class="alert alert-info" data-i18n="demo.extractionLabel" hidden>Demonstration extraction — results are sample data.</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/discover.js"></script>
+
+</body>
+</html>

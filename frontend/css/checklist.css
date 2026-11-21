@@ -1,0 +1,116 @@
+/* Document checklist page: page-specific styles only. */
+
+[hidden] {
+  display: none !important;
+}
+
+.page-main {
+  padding-block: 2rem;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, #5b6470);
+  margin-bottom: 0.75rem;
+}
+
+.loading-area {
+  display: grid;
+  gap: 0.6rem;
+  margin-block: 1rem;
+}
+
+.progress-card {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1.25rem;
+}
+
+.progress-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.progress-head p {
+  margin: 0;
+  font-weight: 600;
+}
+
+#progressPercent {
+  font-weight: 600;
+}
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #e3e7ec;
+}
+
+.checklist-label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.5rem 0.25rem;
+  cursor: pointer;
+}
+
+.checklist-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  accent-color: #1f6feb;
+  cursor: pointer;
+}
+
+.checklist-check:focus-visible {
+  outline: 3px solid #1f6feb;
+  outline-offset: 2px;
+}
+
+.checklist-name {
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.checklist-row .badge-muted,
+.checklist-row .badge-success {
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .page-main {
+    padding-block: 1.25rem;
+  }
+
+  .checklist-row {
+    flex-wrap: wrap;
+  }
+
+  .checklist-name {
+    font-size: 0.95rem;
+  }
+
+  .actions .btn {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}

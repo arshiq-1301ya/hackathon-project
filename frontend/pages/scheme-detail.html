@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scheme Details — CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/scheme-detail.css">
+  <link rel="stylesheet" href="../css/chat.css">
+
+</head>
+<body data-page="scheme-detail">
+  <div id="site-header"></div>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+
+  <main id="main" class="section">
+    <div class="container">
+      <!-- TODO i18n: breadcrumb -->
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a href="results.html">Discover Schemes</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Scheme details</span>
+      </nav>
+
+      <div class="scheme-title-row">
+        <!-- TODO i18n: placeholder title -->
+        <h1 id="schemeName">Scheme details</h1>
+        <span id="demoBadge" class="badge-demo" hidden>Demonstration data</span>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loadingArea" hidden>
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+      </div>
+
+      <!-- Not found state -->
+      <div id="notFound" class="empty-state" hidden>
+        <!-- TODO i18n -->
+        <h2>Scheme not found.</h2>
+        <p><a href="results.html">Back to scheme results</a></p>
+      </div>
+
+      <div id="detailContent" class="detail-grid">
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Overview</h2>
+          <p id="overview"></p>
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Benefits</h2>
+          <p id="benefits"></p>
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Eligibility criteria</h2>
+          <ul id="eligibility" class="detail-list"></ul>
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Who can apply</h2>
+          <p id="whoCanApply"></p>
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Required documents</h2>
+          <ul id="documents" class="detail-list"></ul>
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Application instructions</h2>
+          <ol id="instructions" class="detail-list"></ol>
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Official source</h2>
+          <p id="officialSourceWrap"><a id="officialSource" target="_blank" rel="noopener noreferrer" hidden></a><span id="officialSourceText">Not yet verified</span></p>
+
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Official application URL</h2>
+          <p id="officialApplyWrap"><a id="officialApplyUrl" target="_blank" rel="noopener noreferrer" hidden></a><span id="officialApplyText">Not yet verified</span></p>
+
+        </section>
+
+        <section class="card detail-card">
+          <!-- TODO i18n: section heading -->
+          <h2 class="card-title">Last verified</h2>
+          <p id="lastVerified">Not yet verified</p>
+        </section>
+      </div>
+
+      <div class="detail-actions">
+        <!-- TODO i18n: action labels -->
+        <a id="viewDocsBtn" class="btn btn-secondary" href="checklist.html">View Required Documents</a>
+        <a id="howToApplyBtn" class="btn btn-secondary" href="application-guide.html">How to Apply</a>
+        <button id="saveAppBtn" type="button" class="btn btn-primary">Save Application</button>
+      </div>
+
+      <p class="disclaimer" data-i18n="footer.disclaimer">Eligibility results are indicative. Final approval is subject to verification by the relevant government authority.</p>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/scheme-detail.js"></script>
+
+</body>
+</html>

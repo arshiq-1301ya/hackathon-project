@@ -1,0 +1,126 @@
+/* results.css — page-specific styles for pages/results.html */
+
+.lead {
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.alert {
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr) auto;
+  gap: var(--space-3, 0.75rem);
+  align-items: end;
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.toolbar-search,
+.toolbar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.toolbar-search input,
+.toolbar-field select {
+  width: 100%;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.result-count {
+  margin: var(--space-2, 0.5rem) 0 var(--space-4, 1rem);
+  min-height: 1.5em;
+}
+
+#resultsGrid.grid-3 {
+  align-items: stretch;
+}
+
+.scheme-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  height: 100%;
+}
+
+.scheme-card h3 {
+  margin: 0;
+}
+
+.scheme-card .badge {
+  align-self: flex-start;
+}
+
+.scheme-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  font-size: 0.9rem;
+}
+
+.scheme-card .condition-title {
+  margin: var(--space-2, 0.5rem) 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.condition-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.condition-list li {
+  margin-bottom: 0.2rem;
+}
+
+.scheme-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin-top: auto;
+  padding-top: var(--space-2, 0.5rem);
+}
+
+.save-btn[aria-pressed="true"] {
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-6, 2rem) var(--space-4, 1rem);
+  margin: var(--space-4, 1rem) 0;
+}
+
+.empty-state .btn {
+  margin-top: var(--space-2, 0.5rem);
+}
+
+.disclaimer-box {
+  margin-top: var(--space-6, 2rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-left: 4px solid var(--color-warning, #d97706);
+  background: var(--color-surface, #fff);
+}
+
+@media (max-width: 767px) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-actions .btn {
+    width: 100%;
+  }
+
+  .scheme-actions .btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}

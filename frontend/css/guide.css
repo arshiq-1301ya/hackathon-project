@@ -1,0 +1,116 @@
+/* Application guide page: page-specific styles only. */
+
+[hidden] {
+  display: none !important;
+}
+
+.page-main {
+  padding-block: 2rem;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, #5b6470);
+  margin-bottom: 0.75rem;
+}
+
+.guide-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.guide-head h1 {
+  margin: 0;
+}
+
+.guide-progress {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 1.25rem;
+}
+
+.guide-progress p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.step-card {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 160px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.step-card h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.step-card p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.step-nav .btn {
+  min-height: 48px;
+  min-width: 120px;
+}
+
+.guide-docs,
+.guide-portal {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.guide-docs h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.doc-summary {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.7;
+}
+
+.guide-portal .text-muted {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .page-main {
+    padding-block: 1.25rem;
+  }
+
+  .step-card {
+    padding: 1.1rem;
+  }
+
+  .step-nav .btn,
+  .actions .btn {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}

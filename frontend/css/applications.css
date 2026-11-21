@@ -1,0 +1,174 @@
+/* applications.css - My Applications tracker (page-specific rules only) */
+
+/* Summary grid */
+.app-summary {
+  margin-block: 1.5rem;
+}
+
+.app-summary .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted, #5b6470);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* Toolbar */
+.app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.app-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 14rem;
+  font-weight: 600;
+}
+
+/* Deadlines */
+.app-section {
+  margin-block: 2rem;
+}
+
+.deadline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.deadline-list li {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border, #d9dee5);
+  border-radius: var(--radius, 8px);
+  background: var(--surface, #fff);
+}
+
+.deadline-date {
+  font-weight: 600;
+}
+
+/* Application card */
+.application-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.application-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem 1rem;
+}
+
+.application-card-title {
+  margin: 0;
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.meta-grid dt {
+  font-size: 0.85rem;
+  color: var(--text-muted, #5b6470);
+}
+
+.meta-grid dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.application-card .progress {
+  margin: 0;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Inline status and edit panels */
+.inline-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius, 8px);
+  background: var(--surface-alt, #f4f6f8);
+}
+
+.inline-panel[hidden] {
+  display: none;
+}
+
+.inline-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1 1 10rem;
+  font-size: 0.9rem;
+}
+
+.range-output {
+  min-width: 3rem;
+  font-weight: 600;
+}
+
+.field-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--danger, #b42318);
+  font-weight: 600;
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-toolbar label {
+    flex-basis: 100%;
+  }
+
+  .card-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .deadline-list li {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Government Schemes For You — CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/results.css">
+  <link rel="stylesheet" href="../css/chat.css">
+
+</head>
+<body data-page="results">
+  <div id="site-header"></div>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+
+  <main id="main" class="section">
+    <div class="container">
+      <!-- TODO i18n: page heading -->
+      <h1>Government Schemes For You</h1>
+      <p id="profileSummary" class="lead"></p>
+
+      <!-- TODO i18n: demo notice -->
+      <div id="demoNotice" class="alert alert-info" role="status" hidden>
+        Demonstration schemes — not verified government data.
+      </div>
+
+      <section class="card toolbar" aria-label="Filter schemes">
+        <div class="toolbar-search">
+          <!-- TODO i18n: search label -->
+          <label for="searchInput">Search schemes</label>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Search by name or description">
+        </div>
+
+        <div class="toolbar-field">
+          <!-- TODO i18n: filter labels -->
+          <label for="stateFilter">State</label>
+          <select id="stateFilter">
+            <option value="">All states</option>
+            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option>
+            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+            <option value="Assam">Assam</option>
+            <option value="Bihar">Bihar</option>
+            <option value="Chandigarh">Chandigarh</option>
+            <option value="Chhattisgarh">Chhattisgarh</option>
+            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Goa">Goa</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Haryana">Haryana</option>
+            <option value="Himachal Pradesh">Himachal Pradesh</option>
+            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+            <option value="Jharkhand">Jharkhand</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Kerala">Kerala</option>
+            <option value="Ladakh">Ladakh</option>
+            <option value="Lakshadweep">Lakshadweep</option>
+            <option value="Madhya Pradesh">Madhya Pradesh</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Manipur">Manipur</option>
+            <option value="Meghalaya">Meghalaya</option>
+            <option value="Mizoram">Mizoram</option>
+            <option value="Nagaland">Nagaland</option>
+            <option value="Odisha">Odisha</option>
+            <option value="Puducherry">Puducherry</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Sikkim">Sikkim</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Telangana">Telangana</option>
+            <option value="Tripura">Tripura</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Uttarakhand">Uttarakhand</option>
+            <option value="West Bengal">West Bengal</option>
+          </select>
+        </div>
+
+        <div class="toolbar-field">
+          <!-- TODO i18n: filter labels -->
+          <label for="categoryFilter">Category</label>
+          <select id="categoryFilter">
+            <option value="">All categories</option>
+            <option value="Education">Education</option>
+            <option value="Employment">Employment</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Health">Health</option>
+            <option value="Housing">Housing</option>
+            <option value="Women and child">Women and child</option>
+            <option value="Livelihood">Livelihood</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="toolbar-field">
+          <!-- TODO i18n: sort label -->
+          <label for="sortSelect">Sort by</label>
+          <select id="sortSelect">
+            <option value="match">Best match first</option>
+            <option value="name-asc">Name A–Z</option>
+            <option value="name-desc">Name Z–A</option>
+          </select>
+        </div>
+
+        <div class="toolbar-actions">
+          <!-- TODO i18n: clear filters -->
+          <button id="clearFiltersBtn" type="button" class="btn btn-ghost btn-sm">Clear filters</button>
+        </div>
+      </section>
+
+      <p id="resultCount" class="result-count text-muted" aria-live="polite"></p>
+
+      <!-- Loading state -->
+      <div id="loadingArea" class="grid-3" hidden>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+      </div>
+
+      <div id="resultsGrid" class="grid-3"></div>
+
+      <!-- No profile state -->
+      <div id="noProfile" class="empty-state" hidden>
+        <!-- TODO i18n -->
+        <h2>Complete your profile first</h2>
+        <p>We need a few details about you before we can find matching schemes.</p>
+        <a class="btn btn-primary" href="discover.html">Go to profile</a>
+      </div>
+
+      <!-- No results state -->
+      <div id="emptyState" class="empty-state" hidden>
+        <!-- TODO i18n -->
+        <h2>No schemes match your filters.</h2>
+        <p>Try a different search term or clear your filters.</p>
+        <button id="emptyClearBtn" type="button" class="btn btn-secondary">Clear filters</button>
+      </div>
+
+      <div class="disclaimer-box">
+        <p class="disclaimer" data-i18n="footer.disclaimer">Eligibility results are indicative. Final approval is subject to verification by the relevant government authority.</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/results.js"></script>
+
+</body>
+</html>

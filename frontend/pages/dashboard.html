@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/chat.css">
+</head>
+<body data-page="dashboard">
+  <div id="site-header"></div>
+
+  <main id="main" class="container">
+
+    <!-- 1. Welcome banner -->
+    <section class="dash-hero" aria-labelledby="welcomeTitle">
+      <div class="dash-hero-text">
+        <h1 id="welcomeTitle">Welcome back</h1>
+        <p>Discover government benefits and manage your applications from one place.</p>
+      </div>
+      <div class="dash-hero-actions">
+        <a class="btn btn-primary" href="discover.html">Discover My Benefits</a>
+        <button type="button" class="btn btn-ghost" data-chat-open>Chat with AI Assistant</button>
+      </div>
+    </section>
+
+    <!-- Shown only when there is no session -->
+    <section id="signinCard" class="card dash-signin" aria-labelledby="signinTitle" hidden>
+      <h2 id="signinTitle">Sign in to see your dashboard</h2>
+      <p class="dash-muted">Your profile, saved schemes and applications are kept private to your account.</p>
+      <div class="dash-actions">
+        <a class="btn btn-primary" href="login.html">Log in</a>
+        <a class="btn btn-ghost" href="signup.html">Create account</a>
+      </div>
+    </section>
+
+    <!-- Summary stats -->
+    <section class="stat-grid js-personal" aria-label="Summary">
+      <article class="card stat-card">
+        <p class="stat-label">Profile Completion</p>
+        <p class="stat-value" id="statProfile">0%</p>
+        <div class="dash-progress" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span class="dash-progress-bar" id="statProfileBar"></span>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <p class="stat-label">Matched Schemes</p>
+        <p class="stat-value" id="statMatched">—</p>
+        <p class="stat-helper" id="statMatchedHelper">Run a search to see matches</p>
+      </article>
+      <article class="card stat-card">
+        <p class="stat-label">Saved Schemes</p>
+        <p class="stat-value" id="statSaved">0</p>
+        <p class="stat-helper">Schemes you bookmarked</p>
+      </article>
+      <article class="card stat-card">
+        <p class="stat-label">Active Applications</p>
+        <p class="stat-value" id="statActive">0</p>
+        <p class="stat-helper">Not yet approved or rejected</p>
+      </article>
+    </section>
+
+    <div class="dash-grid">
+
+      <!-- a. AI Scheme Discovery -->
+      <section class="card dash-card dash-card-wide" aria-labelledby="discoveryTitle">
+        <h2 id="discoveryTitle">AI Scheme Discovery</h2>
+        <p class="dash-muted">Tell the assistant about your situation and it will suggest suitable schemes.</p>
+        <label class="dash-label" for="dashInput">Describe your situation</label>
+        <textarea id="dashInput" rows="3" maxlength="1000" placeholder="Describe your situation in Hindi or English…"></textarea>
+        <div class="dash-actions">
+          <button type="button" class="btn btn-primary" id="dashDiscoverBtn">Discover Schemes</button>
+        </div>
+        <p class="dash-example">
+          <span class="dash-muted">Example (sample text):</span>
+          I am a 22-year-old graduate from Bihar looking for a job.
+        </p>
+      </section>
+
+      <!-- b. My Profile -->
+      <section class="card dash-card js-personal" aria-labelledby="profileTitle">
+        <h2 id="profileTitle">My Profile</h2>
+        <dl class="dash-dl" id="profileList"></dl>
+        <div class="dash-progress" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span class="dash-progress-bar" id="profileBar"></span>
+        </div>
+        <div class="dash-actions">
+          <a class="btn btn-ghost" href="profile.html">Edit Profile</a>
+        </div>
+      </section>
+
+      <!-- c. Recommended Schemes -->
+      <section class="card dash-card js-personal" aria-labelledby="recTitle">
+        <h2 id="recTitle">Recommended Schemes</h2>
+        <ul class="dash-list" id="recList"></ul>
+        <div class="dash-empty" id="recEmpty">
+          <p>Run a search to see recommended schemes.</p>
+          <a class="btn btn-primary" href="discover.html">Discover Schemes</a>
+        </div>
+        <p class="dash-note">Sample data is labelled. Statuses are updated by you, not by the government.</p>
+      </section>
+
+      <!-- d. My Applications -->
+      <section class="card dash-card js-personal" aria-labelledby="appsTitle">
+        <div class="dash-head">
+          <h2 id="appsTitle">My Applications</h2>
+          <a href="applications.html">View all</a>
+        </div>
+        <ul class="dash-list" id="appList"></ul>
+        <div class="dash-empty" id="appEmpty">
+          <p>You have not started any applications yet.</p>
+          <a class="btn btn-primary" href="discover.html">Find a scheme to apply for</a>
+        </div>
+      </section>
+
+      <!-- e. Document Checklist -->
+      <section class="card dash-card js-personal" aria-labelledby="checkTitle">
+        <h2 id="checkTitle">Document Checklist</h2>
+        <div id="checkBody">
+          <p class="dash-list-name" id="checkName"></p>
+          <p id="checkSummary"></p>
+          <div class="dash-progress" role="progressbar" aria-label="Checklist progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span class="dash-progress-bar" id="checkBar"></span>
+          </div>
+        </div>
+        <div class="dash-empty" id="checkEmpty">
+          <p>Choose a scheme to see its checklist</p>
+          <a class="btn btn-ghost" href="results.html">Choose a scheme</a>
+        </div>
+      </section>
+
+      <!-- f. Upcoming Deadlines -->
+      <section class="card dash-card js-personal" aria-labelledby="deadlineTitle">
+        <h2 id="deadlineTitle">Upcoming Deadlines</h2>
+        <ul class="dash-list" id="deadlineList"></ul>
+        <p class="dash-muted" id="deadlineEmpty">No upcoming deadlines.</p>
+      </section>
+
+      <!-- g. Recent Activity -->
+      <section class="card dash-card js-personal" aria-labelledby="activityTitle">
+        <h2 id="activityTitle">Recent Activity</h2>
+        <ol class="timeline" id="activityList"></ol>
+        <p class="dash-muted" id="activityEmpty">No activity yet.</p>
+        <p class="dash-note">Sample data is labelled. Statuses are updated by you, not by the government.</p>
+      </section>
+
+      <!-- h. Quick Actions -->
+      <section class="card dash-card dash-card-wide" aria-labelledby="quickTitle">
+        <h2 id="quickTitle">Quick Actions</h2>
+        <div class="quick-grid">
+          <a class="quick-action" href="discover.html">Discover Schemes</a>
+          <a class="quick-action" href="profile.html">Complete My Profile</a>
+          <a class="quick-action" href="applications.html">View Applications</a>
+          <button type="button" class="quick-action" data-chat-open>Chat with AI Assistant</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      document.querySelectorAll('[data-chat-open]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          document.dispatchEvent(new Event('civicassist:chat-open'));
+        });
+      });
+    })();
+  </script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

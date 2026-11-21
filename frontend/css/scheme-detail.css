@@ -1,0 +1,101 @@
+/* scheme-detail.css — page-specific styles for pages/scheme-detail.html */
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.scheme-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.scheme-title-row h1 {
+  margin: 0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4, 1rem);
+}
+
+.detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+
+.detail-card .card-title {
+  margin: 0;
+}
+
+.detail-card p {
+  margin: 0;
+}
+
+.detail-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.detail-list li {
+  margin-bottom: 0.35rem;
+}
+
+.detail-card a {
+  word-break: break-all;
+}
+
+#loadingArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+#loadingArea .skeleton-title {
+  width: 50%;
+}
+
+#loadingArea .skeleton-line {
+  width: 100%;
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  margin: var(--space-6, 2rem) 0 var(--space-4, 1rem);
+}
+
+.detail-actions .btn {
+  flex: 0 1 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-6, 2rem) var(--space-4, 1rem);
+  margin: var(--space-4, 1rem) 0;
+}
+
+.site-footer .disclaimer {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+}

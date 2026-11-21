@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="../">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Checklist | CivicAssist</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/checklist.css">
+  <link rel="stylesheet" href="../css/chat.css">
+
+</head>
+<body data-page="checklist">
+  <div id="site-header"></div>
+
+
+  <main id="main" class="container page-main">
+    <!-- TODO i18n: breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="discover.html">Discover Schemes</a>
+      <span aria-hidden="true">&gt;</span>
+      <span>Document checklist</span>
+    </nav>
+
+    <!-- TODO i18n: page heading and intro -->
+    <h1 id="schemeName">Document checklist</h1>
+    <p class="text-muted">Tick each document once you have it ready. Do not upload Aadhaar or any ID number here.</p>
+
+    <div id="loadingArea" class="loading-area" hidden>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+    </div>
+
+    <!-- TODO i18n: not-found state -->
+    <div id="notFound" class="empty-state" hidden>
+      <p>Scheme not found.</p>
+      <a class="btn btn-secondary" href="discover.html">Browse schemes</a>
+    </div>
+
+    <!-- TODO i18n: empty state -->
+    <div id="emptyState" class="empty-state" hidden>
+      <p>No document list is available for this scheme yet.</p>
+      <a class="btn btn-secondary" href="discover.html">Back to discover</a>
+    </div>
+
+    <section class="card progress-card" aria-label="Progress">
+      <div class="progress-head">
+        <p id="progressText">0 of 0 completed</p>
+        <span id="progressPercent">0%</span>
+        <span id="statusBadge" class="badge-muted">Pending</span>
+      </div>
+      <div class="progress">
+        <div id="progressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%"></div>
+      </div>
+    </section>
+
+    <ul id="docList" class="stack" aria-label="Required documents"></ul>
+
+    <div class="actions">
+      <button id="saveProgressBtn" class="btn btn-primary" type="button" data-i18n="btn.save">Save</button>
+      <a id="backLink" class="btn btn-secondary" href="discover.html">Back to scheme</a>
+      <!-- TODO i18n: guide link -->
+      <a id="guideLink" class="btn btn-ghost" href="application-guide.html">How to Apply</a>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+
+  <script src="../js/translations.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-service.js"></script>
+  <script src="../js/layout.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/checklist.js"></script>
+
+</body>
+</html>

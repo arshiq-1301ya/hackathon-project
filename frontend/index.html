@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-base="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicAssist — Government Scheme Discovery</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/landing.css">
+</head>
+<body data-page="home">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="section hero">
+      <div class="container grid-2">
+        <div class="hero-copy">
+          <span class="eyebrow">Government schemes, simplified</span>
+          <h1 data-i18n="landing.hero.title">Find the government schemes you qualify for</h1>
+          <p class="lead" data-i18n="landing.hero.description">Answer a few questions about yourself and CivicAssist explains which schemes may fit, why, and what to do next.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary btn-lg" href="pages/discover.html" data-i18n="btn.discover">Discover Schemes</a>
+            <a class="btn btn-secondary btn-lg" href="#how-it-works" data-i18n="btn.howItWorks">How It Works</a>
+          </div>
+          <ul class="trust-points">
+            <li>Plain-language eligibility explanations</li>
+            <li>Documents and steps in one place</li>
+            <li>Your data stays in your browser</li>
+          </ul>
+        </div>
+
+        <div class="card hero-card">
+          <h2 class="card-title">Your match summary</h2>
+          <ul class="match-list">
+            <li class="match-row">
+              <span class="match-name">Sample Scheme A — Education support</span>
+              <span class="badge badge-success">Likely Eligible</span>
+            </li>
+            <li class="match-row">
+              <span class="match-name">Sample Scheme B — Livelihood support</span>
+              <span class="badge badge-warning">Possible Match — More Information Needed</span>
+            </li>
+            <li class="match-row">
+              <span class="match-name">Sample Scheme C — Housing support</span>
+              <span class="badge badge-muted">Not Matched</span>
+            </li>
+          </ul>
+          <span class="badge-demo" data-i18n="demo.badge">Demo</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demonstration examples -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Demonstration example</h2>
+        <p class="text-muted">These are fictional sample schemes used only to show how results are presented.</p>
+        <div class="grid-3">
+          <article class="card">
+            <span class="badge-demo" data-i18n="demo.badge">Demo</span>
+            <h3 class="card-title">Sample Scheme A — Education support</h3>
+            <span class="badge badge-success">Likely Eligible</span>
+          </article>
+          <article class="card">
+            <span class="badge-demo" data-i18n="demo.badge">Demo</span>
+            <h3 class="card-title">Sample Scheme B — Livelihood support</h3>
+            <span class="badge badge-warning">Possible Match — More Information Needed</span>
+          </article>
+          <article class="card">
+            <span class="badge-demo" data-i18n="demo.badge">Demo</span>
+            <h3 class="card-title">Sample Scheme C — Housing support</h3>
+            <span class="badge badge-muted">Not Matched</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section" id="how-it-works">
+      <div class="container">
+        <h2 class="section-title">How It Works</h2>
+        <div class="grid-4">
+          <article class="card step-card">
+            <span class="step-number" aria-hidden="true">1</span>
+            <h3 class="card-title">Describe your situation</h3>
+            <p class="text-muted">Tell us about your age, occupation, income range and location.</p>
+          </article>
+          <article class="card step-card">
+            <span class="step-number" aria-hidden="true">2</span>
+            <h3 class="card-title">Review your profile</h3>
+            <p class="text-muted">Check the details we captured and correct anything that is wrong.</p>
+          </article>
+          <article class="card step-card">
+            <span class="step-number" aria-hidden="true">3</span>
+            <h3 class="card-title">See matching schemes</h3>
+            <p class="text-muted">Get a list of schemes with a plain-language reason for each match.</p>
+          </article>
+          <article class="card step-card">
+            <span class="step-number" aria-hidden="true">4</span>
+            <h3 class="card-title">Prepare and track applications</h3>
+            <!-- TODO i18n -->
+            <p class="text-muted">Follow a document checklist and keep track of every application in one place.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Why CivicAssist</h2>
+        <div class="grid-3">
+          <!-- TODO i18n -->
+          <article class="card">
+            <h3 class="card-title">Eligibility clarity</h3>
+            <p class="text-muted">Understand exactly which conditions a scheme checks and where you stand on each one.</p>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Document checklist</h3>
+            <p class="text-muted">See the documents each scheme asks for before you start filling forms.</p>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Application tracking</h3>
+            <p class="text-muted">Keep the status of every application you have started or submitted.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="alert alert-warning">
+          <p data-i18n="footer.disclaimer">CivicAssist is an information aid. It does not guarantee eligibility or approval. Always confirm details with the official scheme authority.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/translations.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ai-service.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
