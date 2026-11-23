@@ -247,7 +247,7 @@
 
   function redirectLater(ms) {
     setTimeout(function () {
-      window.location.href = 'dashboard.html';
+      window.location.href = '../pages/dashboard.html';
     }, ms);
   }
 
