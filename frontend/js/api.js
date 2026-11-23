@@ -24,7 +24,7 @@
 
   var TOKEN_KEY = 'civicassist_token';
   var USER_KEY = 'civicassist_user';
-  var DEFAULT_ORIGIN = 'http://localhost:5000';
+  var DEFAULT_ORIGIN = 'https://scheme-finder-aod3.onrender.com';
 
   var cfg = window.CIVICASSIST_CONFIG || {};
 
