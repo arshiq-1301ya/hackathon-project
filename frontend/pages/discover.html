@@ -26,6 +26,13 @@
             <label for="situation" class="form-label">Your situation</label>
             <textarea id="situation" class="textarea" name="situation" rows="8" maxlength="1000"
               aria-describedby="situation-help situation-error"></textarea>
+
+                          <div class="voice-row">
+              <button type="button" id="micBtn" class="btn btn-secondary btn-sm" aria-pressed="false" hidden>
+                <span aria-hidden="true">🎤</span> <span id="micLabel">Speak instead</span>
+              </button>
+              <span id="micStatus" class="field-help" role="status" aria-live="polite"></span>
+            </div>
             <div id="situation-help" class="field-help">
               <!-- TODO i18n -->
               <span>Do not enter Aadhaar numbers or other ID numbers.</span>

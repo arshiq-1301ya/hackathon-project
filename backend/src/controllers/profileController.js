@@ -1,5 +1,6 @@
 const { extractProfile } = require("../services/profileExtractionService");
 const { validateProfileUpdate } = require("../services/profileValidation");
+const { containsSensitiveId, SENSITIVE_ID_MESSAGE } = require("../services/sensitiveInput");
 const Profile = require("../models/Profile");
 
 const MAX_TEXT_LENGTH = 2000;
@@ -10,6 +11,7 @@ const canonicalEmpty = () => ({
     annualFamilyIncome: null,
     purpose: "",
     occupation: "",
+    landStatus: null,
     otherInfo: ""
 });
 
@@ -19,6 +21,7 @@ const canonical = (doc) => ({
     annualFamilyIncome: doc.annualFamilyIncome ?? null,
     purpose: doc.purpose ?? "",
     occupation: doc.occupation ?? "",
+    landStatus: doc.landStatus ?? null,
     otherInfo: doc.otherInfo ?? ""
 });
 
@@ -40,7 +43,7 @@ const handleProfileError = (err, res, next) => {
     return next(err);
 };
 
-exports.extractProfileFromText = (req, res) => {
+exports.extractProfileFromText = async (req, res) => {
     try {
         const text = req.body ? req.body.text : undefined;
 
@@ -58,14 +61,19 @@ exports.extractProfileFromText = (req, res) => {
             });
         }
 
-        const { profile, missingInformation } = extractProfile(text.trim());
+        if (containsSensitiveId(text)) {
+            return res.status(400).json({ success: false, message: SENSITIVE_ID_MESSAGE });
+        }
+
+        const { profile, missingInformation, source } = await extractProfile(text.trim());
 
         res.status(200).json({
             success: true,
             message: "Profile extracted successfully",
             data: {
                 profile,
-                missingInformation
+                missingInformation,
+                source
             }
         });
 

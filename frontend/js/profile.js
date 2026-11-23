@@ -4,7 +4,7 @@
   'use strict';
 
   var CA = window.CivicAssist;
-  var FIELDS = ['state', 'educationLevel', 'annualFamilyIncome', 'purpose', 'occupation', 'otherInfo'];
+  var FIELDS = ['state', 'educationLevel', 'annualFamilyIncome', 'purpose', 'occupation', 'landStatus', 'otherInfo'];
   var REQUIRED = ['state', 'purpose'];
   var MAX_INCOME = 1e12;
   var CONFIRMED_KEY = 'profile.confirmed';
@@ -57,6 +57,7 @@
         annualFamilyIncome: raw.annualFamilyIncome === '' ? null : Number(raw.annualFamilyIncome),
         purpose: raw.purpose,
         occupation: raw.occupation,
+        landStatus: raw.landStatus === '' ? null : raw.landStatus,
         otherInfo: raw.otherInfo
       };
     }

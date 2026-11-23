@@ -71,6 +71,7 @@
     'annualFamilyIncome',
     'purpose',
     'occupation',
+    'landStatus',
     'otherInfo'
   ];
 
@@ -359,8 +360,8 @@
       })
       .then(function (response) {
         var data = unwrap(response);
-        if (data && Array.isArray(data.items)) {
-          return { items: data.items, _source: 'backend' };
+        if (data && Array.isArray(data.results)) {
+          return { items: data.results, _source: 'backend' };
         }
         return mock();
       }, function (err) {

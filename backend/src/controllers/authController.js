@@ -6,7 +6,8 @@ const mongoose = require("mongoose");
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normaliseEmail = (email) => String(email).trim().toLowerCase();
-
+const signToken = (userId) =>
+    jwt.sign({ userId: String(userId) }, process.env.JWT_SECRET, { expiresIn: "7d" });
 exports.signup = async (req, res) => {
     try {
         const body = req.body || {};
@@ -72,7 +73,9 @@ exports.signup = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "User registered successfully",
+            token: signToken(newUser._id),
             user: {
+                _id: newUser._id,
                 id: newUser._id,
                 name: newUser.name,
                 email: newUser.email
@@ -137,11 +140,7 @@ exports.login = async (req, res) => {
             });
         }
 
-        const token = jwt.sign(
-            { userId: user._id.toString() },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
+        const token = signToken(user._id);
 
         res.status(200).json({
             success: true,

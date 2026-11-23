@@ -131,6 +131,25 @@
               <div class="field-error" role="alert" id="error-occupation" hidden></div>
             </div>
 
+            <div class="form-group" id="group-landStatus">
+  <label class="form-label" for="landStatus">Land status</label>
+
+  <select id="landStatus" name="landStatus" class="select">
+    <option value="">Select</option>
+    <option value="landholding">I own agricultural land</option>
+    <option value="landless">I do not own agricultural land</option>
+  </select>
+
+  <span class="missing-tag" hidden>Missing</span>
+
+  <div
+    class="field-error"
+    role="alert"
+    id="error-landStatus"
+    hidden>
+  </div>
+</div>
+
             <div class="form-group form-group-wide" id="group-otherInfo">
               <label class="form-label" for="otherInfo">Other relevant information</label>
               <textarea id="otherInfo" name="otherInfo" class="textarea" maxlength="500" rows="3"></textarea>

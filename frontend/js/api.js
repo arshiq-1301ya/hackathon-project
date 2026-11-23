@@ -227,7 +227,7 @@
   }
 
   // Canonical profile fields. Only these keys are ever sent to the backend.
-  var PROFILE_FIELDS = ['state', 'educationLevel', 'annualFamilyIncome', 'purpose', 'occupation', 'otherInfo'];
+  var PROFILE_FIELDS = ['state', 'educationLevel', 'annualFamilyIncome', 'purpose', 'occupation', 'landStatus', 'otherInfo'];
 
   function pickProfileFields(source) {
     var out = {};
@@ -280,6 +280,14 @@
         out.otherInfo = profile.otherInfo !== undefined ? profile.otherInfo : null;
         return out;
       });
+    },
+
+        assistantChat: function (message, context) {
+      var body = { message: message };
+      if (context && context.profile && typeof context.profile === 'object') {
+        body.profile = pickProfileFields(context.profile);
+      }
+      return request('POST', '/ai/ask', body);
     },
     // Resolves to the envelope data: { profile, updatedAt, exists }.
     getProfile: function () {

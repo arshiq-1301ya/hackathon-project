@@ -136,7 +136,8 @@ STRICT RULES:
 10. If a scheme has no configured eligibility rules, do not claim eligibility.
 11. Never request Aadhaar numbers, bank account numbers, OTPs, passwords or other sensitive ID numbers.
 12. Mention that final eligibility is decided by the official scheme authority.
-13. If there are no candidates, explain that no current match was found from the available scheme data.
+13. Reply in the same language as the USER MESSAGE (Hindi, English or Hinglish), keeping scheme names and official links unchanged.
+14. If there are no candidates, explain that no current match was found from the available scheme data.
 
 USER MESSAGE:
 ${userMessage}
