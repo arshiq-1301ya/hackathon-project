@@ -51,44 +51,96 @@
     el.textContent = value ? String(value) : fallback;
   }
 
-  function findSaved(list, id) {
-    return list.some(function (app) { return String(app.id) === id; });
+  // Converts any value to display text without ever producing "[object Object]".
+  function toText(value) {
+    if (value === null || value === undefined) return '';
+    if (Array.isArray(value)) return value.map(toText).filter(Boolean).join(', ');
+    if (typeof value === 'object') {
+      try { return JSON.stringify(value); } catch (err) { return ''; }
+    }
+    return String(value);
   }
 
-  function renderSaveState() {
-    var list = CA.storage.get('applications.list', []);
-    var saved = Array.isArray(list) && findSaved(list, currentId);
-    dom.saveBtn.textContent = saved ? 'Saved to My Applications' : 'Save Application'; // TODO i18n
-    dom.saveBtn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+  // Maps one eligibility rule { field, operator, value, description } to display text.
+  function ruleText(rule) {
+    if (typeof rule === 'string') return rule.trim();
+    if (!rule || typeof rule !== 'object') return '';
+    var desc = typeof rule.description === 'string' ? rule.description.trim() : '';
+    if (desc) return desc;
+    var parts = [toText(rule.field), toText(rule.operator), toText(rule.value)].filter(Boolean);
+    var text = parts.join(' ');
+    if (text && (rule.value === null || rule.value === undefined)) {
+      text += ' (not yet defined in our data)'; // TODO i18n
+    }
+    return text;
+  }
+
+  function eligibilityLines(rules) {
+    if (!Array.isArray(rules)) return [];
+    return rules.map(ruleText).filter(Boolean);
+  }
+
+  var savedToList = false;
+  var saving = false;
+
+  // Scheme id of a backend application (schemeId is populated as {_id, name, ...}).
+  function schemeIdOf(app) {
+    var s = app && app.schemeId;
+    if (s && typeof s === 'object') return String(s._id || '');
+    return s ? String(s) : '';
+  }
+
+  // Button text and aria state for the saved / not-saved view.
+  function renderSaveState(saved) {
+    savedToList = !!saved;
+    dom.saveBtn.textContent = savedToList ? 'Saved to My Applications' : 'Save Application'; // TODO i18n
+    dom.saveBtn.setAttribute('aria-pressed', savedToList ? 'true' : 'false');
+  }
+
+  // Asks the backend whether this user already has an application for this scheme.
+  function loadSavedState() {
+    return API.listApplications().then(function (res) {
+      var apps = res && res.data && Array.isArray(res.data.applications) ? res.data.applications : [];
+      renderSaveState(apps.some(function (app) { return schemeIdOf(app) === currentId; }));
+    }, function () {
+      renderSaveState(false);
+      CA.toast('error', CA.t('toast.networkError'));
+    });
   }
 
   function renderScheme(s) {
     currentScheme = s;
     dom.name.textContent = s.name ? String(s.name) : 'Scheme details';
-    dom.demoBadge.hidden = s.isDemo !== true;
+    dom.demoBadge.hidden = true; // backend has no isDemo field
 
-    setText(dom.overview, s.description || s.overview, 'No overview available yet.'); // TODO i18n
+    setText(dom.overview, s.description, 'No overview available yet.'); // TODO i18n
 
-    if (s.benefits && s.verified === true) {
-      dom.benefits.textContent = String(s.benefits);
-    } else {
-      dom.benefits.textContent = BENEFITS_PENDING;
-    }
+    // benefits is a <p> in the page: join the string array for display.
+    var benefitList = Array.isArray(s.benefits) ? s.benefits.map(toText).filter(Boolean) : [];
+    dom.benefits.textContent = benefitList.length ? benefitList.join('; ') : BENEFITS_PENDING;
 
-    fillList(dom.eligibility, s.eligibility, 'Eligibility criteria not yet available.'); // TODO i18n
-    setText(dom.whoCanApply, s.whoCanApply, DETAILS_PENDING);
-    fillList(dom.documents, s.documents, 'Required documents not yet available.'); // TODO i18n
-    fillList(dom.instructions, s.instructions, 'Application instructions not yet available.'); // TODO i18n
+    fillList(dom.eligibility, eligibilityLines(s.eligibility), 'Eligibility criteria not yet available.'); // TODO i18n
+    dom.whoCanApply.textContent = DETAILS_PENDING; // no backend field for this yet
+    fillList(dom.documents, s.requiredDocuments, 'Required documents not yet available.'); // TODO i18n
+    fillList(dom.instructions, s.applicationSteps, 'Application instructions not yet available.'); // TODO i18n
 
-    setOfficialLink(dom.officialSource, dom.officialSourceText, s.officialSourceUrl);
-    setOfficialLink(dom.officialApply, dom.officialApplyText, s.officialApplyUrl);
-    setText(dom.lastVerified, s.lastVerified, NOT_VERIFIED);
+    setOfficialLink(dom.officialSource, dom.officialSourceText, s.officialSource);
+
+    // No backend application URL exists yet: hide the apply link and its placeholder text.
+    dom.officialApply.hidden = true;
+    dom.officialApply.removeAttribute('href');
+    dom.officialApplyText.hidden = true;
+
+    var verified = s.lastVerified ? new Date(s.lastVerified) : null;
+    dom.lastVerified.textContent = verified && !isNaN(verified.getTime())
+      ? verified.toLocaleDateString()
+      : NOT_VERIFIED;
 
     var encodedId = encodeURIComponent(currentId);
     dom.viewDocs.href = 'checklist.html?id=' + encodedId;
     dom.howToApply.href = 'application-guide.html?id=' + encodedId;
 
-    renderSaveState();
+    loadSavedState();
     showContent();
   }
 
@@ -111,31 +163,34 @@
   }
 
   function saveApplication() {
-    if (!currentScheme) return;
-    var list = CA.storage.get('applications.list', []);
-    if (!Array.isArray(list)) list = [];
-
-    if (findSaved(list, currentId)) {
+    if (!currentScheme || saving) return;
+    if (savedToList) {
       CA.toast('info', 'This scheme is already in My Applications.'); // TODO i18n
-    } else {
-      list.push({
-        id: currentId,
-        name: currentScheme.name ? String(currentScheme.name) : currentId,
-        status: 'NOT_STARTED',
-        deadline: null,
-        reminderDate: null,
-        progress: 0,
-        createdAt: new Date().toISOString()
-      });
-      CA.storage.set('applications.list', list);
-      CA.toast('success', 'Application saved to My Applications.'); // TODO i18n
+      return;
     }
-    renderSaveState();
+
+    saving = true;
+    dom.saveBtn.disabled = true;
+    API.createApplication({ schemeId: currentId }).then(function () {
+      renderSaveState(true);
+      CA.toast('success', 'Application saved to My Applications.'); // TODO i18n
+    }, function (err) {
+      if (err && err.status === 409) {
+        // Backend already has an application for this scheme: treat as saved.
+        renderSaveState(true);
+        CA.toast('info', 'This scheme is already in My Applications.'); // TODO i18n
+      } else {
+        CA.toast('error', (err && err.message) || CA.t('toast.networkError'));
+      }
+    }).then(function () {
+      saving = false;
+      dom.saveBtn.disabled = false;
+    });
   }
 
   async function loadScheme() {
     var stored = CA.storage.get('scheme.selected', null);
-    if (stored && String(stored.id) === currentId) {
+    if (stored && String(stored._id || stored.id) === currentId) {
       renderScheme(stored);
       return;
     }

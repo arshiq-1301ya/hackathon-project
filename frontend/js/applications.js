@@ -1,11 +1,11 @@
 /* applications.js - My Applications tracker.
+ * Data comes from the backend (GET /applications); nothing is stored locally.
  * Statuses are user-managed; this page never shows them as government updates.
  * TODO i18n: new strings below use English fallbacks until translations exist.
  */
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'applications.list';
   var STATUSES = [
     { code: 'NOT_STARTED', label: 'Not Started', cls: 'status-not-started' },
     { code: 'PREPARING_DOCUMENTS', label: 'Preparing Documents', cls: 'status-preparing' },
@@ -18,10 +18,31 @@
   var STATUS_BY_CODE = {};
   STATUSES.forEach(function (s) { STATUS_BY_CODE[s.code] = s; });
 
-  var state = { items: [], query: '', status: '', openStatus: {}, openEdit: {} };
+  // The only place frontend status codes map to backend statuses (not_started, in_progress,
+  // submitted, approved, rejected). Several frontend codes share one backend value, so the
+  // reverse mapping shows the canonical code for each backend value.
+  var BACKEND_STATUS = {
+    NOT_STARTED: 'not_started',
+    PREPARING_DOCUMENTS: 'in_progress',
+    READY_TO_APPLY: 'in_progress',
+    APPLIED: 'submitted',
+    UNDER_REVIEW: 'submitted',
+    APPROVED: 'approved',
+    REJECTED: 'rejected'
+  };
+  var FRONTEND_STATUS = {
+    not_started: 'NOT_STARTED',
+    in_progress: 'PREPARING_DOCUMENTS',
+    submitted: 'APPLIED',
+    approved: 'APPROVED',
+    rejected: 'REJECTED'
+  };
+
+  var state = { items: [], loadFailed: false, query: '', status: '', openStatus: {}, openEdit: {} };
   var els = {};
 
   function CA() { return window.CivicAssist; }
+  function api() { return window.CIVICASSIST_API; }
 
   // Translated string when a key exists, otherwise the English fallback.
   function tr(key, fallback, vars) {
@@ -38,6 +59,10 @@
     if (c && typeof c.toast === 'function') c.toast(type, msg);
   }
 
+  function errorMessage(err) {
+    return (err && err.message) || tr('toast.networkError', 'Something went wrong.');
+  }
+
   function el(tag, cls, text) {
     var node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -47,6 +72,9 @@
 
   function statusInfo(code) { return STATUS_BY_CODE[code] || STATUS_BY_CODE.NOT_STARTED; }
   function statusLabel(code) { return tr('status.' + code, statusInfo(code).label); }
+
+  function toBackendStatus(code) { return BACKEND_STATUS[code] || null; }
+  function fromBackendStatus(value) { return FRONTEND_STATUS[value] || 'NOT_STARTED'; }
 
   function isIsoDate(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); }
 
@@ -63,45 +91,38 @@
     return Math.round((target - today) / 86400000);
   }
 
-  // Keep only well-formed entries; drop anything without an id or name.
-  function normalize(raw) {
-    if (!raw || typeof raw !== 'object') return null;
-    if (raw.id === undefined || raw.id === null || String(raw.id).trim() === '') return null;
-    if (typeof raw.name !== 'string' || !raw.name.trim()) return null;
-    var p = Number(raw.progress);
+  // Backend deadline is an ISO timestamp or date; the UI works with YYYY-MM-DD.
+  function dateOnly(value) {
+    if (typeof value !== 'string' || !value) return '';
+    var day = value.slice(0, 10);
+    return isIsoDate(day) ? day : '';
+  }
+
+  // Maps one backend application (schemeId populated as {_id, name, ...}) to the view model.
+  // prev supplies scheme id/name when a PATCH response leaves schemeId unpopulated.
+  function normalizeApp(raw, prev) {
+    if (!raw || typeof raw !== 'object' || !raw._id) return null;
+    var s = raw.schemeId;
+    var schemeId = '';
+    var name = '';
+    if (s && typeof s === 'object') {
+      schemeId = s._id ? String(s._id) : '';
+      name = typeof s.name === 'string' ? s.name.trim() : '';
+    } else if (s) {
+      schemeId = String(s);
+    }
+    if (!schemeId && prev) schemeId = prev.schemeId;
+    if (!name && prev) name = prev.name;
     return {
-      id: String(raw.id),
-      name: raw.name.trim(),
-      status: STATUS_BY_CODE[raw.status] ? raw.status : 'NOT_STARTED',
-      deadline: isIsoDate(raw.deadline) ? raw.deadline : '',
-      reminderDate: isIsoDate(raw.reminderDate) ? raw.reminderDate : '',
-      progress: isFinite(p) ? Math.min(100, Math.max(0, Math.round(p))) : 0,
+      id: String(raw._id),
+      schemeId: schemeId,
+      name: name || 'Unnamed scheme', // TODO i18n
+      status: fromBackendStatus(raw.status),
+      deadline: dateOnly(raw.deadline),
+      reminderDate: '', // no backend field yet; display only
+      progress: 0,      // no backend field yet; display only
       createdAt: raw.createdAt || ''
     };
-  }
-
-  function loadItems() {
-    var raw = CA().storage.get(STORAGE_KEY, []);
-    if (!Array.isArray(raw)) return [];
-    var out = [];
-    raw.forEach(function (r) {
-      var n = normalize(r);
-      if (n) out.push(n);
-    });
-    return out;
-  }
-
-  function persist() {
-    CA().storage.set(STORAGE_KEY, state.items);
-  }
-
-  // Best-effort sync to the API layer; local storage remains the source for this page.
-  function sendApi(fnName, args) {
-    var api = window.CIVICASSIST_API;
-    if (!api || typeof api[fnName] !== 'function') return;
-    Promise.resolve()
-      .then(function () { return api[fnName].apply(api, args); })
-      .catch(function () { /* ignored: storage already updated */ });
   }
 
   function findItem(id) {
@@ -111,34 +132,71 @@
     return null;
   }
 
-  function updateItem(id, patch, msg) {
-    var item = findItem(id);
-    if (!item) return;
-    Object.assign(item, patch);
-    persist();
-    sendApi('updateApplication', [id, patch]);
-    toast('success', msg);
-    render();
+  // Replaces one item with the server copy from a { data: { application } } response.
+  function applyServerApp(id, res) {
+    var prev = findItem(id);
+    var next = normalizeApp(res && res.data && res.data.application, prev);
+    if (!next) return;
+    state.items = state.items.map(function (i) { return i.id === id ? next : i; });
+  }
+
+  function loadApplications() {
+    els.loadingArea.hidden = false;
+    return Promise.resolve()
+      .then(function () { return api().listApplications(); })
+      .then(function (res) {
+        var list = res && res.data && Array.isArray(res.data.applications) ? res.data.applications : [];
+        state.items = list.map(function (raw) { return normalizeApp(raw, null); }).filter(Boolean);
+        state.loadFailed = false;
+      }, function (err) {
+        state.items = [];
+        state.loadFailed = true;
+        toast('error', errorMessage(err));
+      })
+      .then(function () {
+        els.loadingArea.hidden = true;
+        render();
+      });
   }
 
   function saveStatus(id, code) {
-    if (!STATUS_BY_CODE[code]) return;
+    var backend = toBackendStatus(code);
+    if (!backend || !findItem(id)) return;
     state.openStatus[id] = false;
     // Status changes never alter progress automatically.
-    updateItem(id, { status: code }, tr('toast.saved', 'Changes saved.'));
+    api().updateApplication(id, { status: backend }).then(function (res) {
+      applyServerApp(id, res);
+      toast('success', tr('toast.saved', 'Changes saved.'));
+      render();
+    }, function (err) {
+      state.openStatus[id] = true;
+      toast('error', errorMessage(err));
+      render();
+    });
   }
 
   function removeItem(item) {
     CA().confirm('Remove this application from your tracker?', { danger: true }).then(function (ok) {
       if (!ok) return;
-      state.items = state.items.filter(function (i) { return i.id !== item.id; });
-      delete state.openStatus[item.id];
-      delete state.openEdit[item.id];
-      persist();
-      sendApi('deleteApplication', [item.id]);
-      toast('success', tr('toast.removed', 'Application removed.'));
-      render();
+      api().deleteApplication(item.id).then(function () {
+        removeLocal(item.id);
+        toast('success', tr('toast.removed', 'Application removed.'));
+      }, function (err) {
+        // 404: already gone on the server, so drop it from the list too.
+        if (err && err.status === 404) {
+          removeLocal(item.id);
+          return;
+        }
+        toast('error', errorMessage(err));
+      });
     });
+  }
+
+  function removeLocal(id) {
+    state.items = state.items.filter(function (i) { return i.id !== id; });
+    delete state.openStatus[id];
+    delete state.openEdit[id];
+    render();
   }
 
   function metaRow(term, value) {
@@ -199,7 +257,7 @@
     statusPanel.appendChild(sLabel);
     statusPanel.appendChild(saveStatusBtn);
 
-    // Edit panel: deadline, reminder, progress
+    // Edit panel: deadline (the only date field the backend stores)
     var editPanel = el('form', 'inline-panel edit-panel');
     editPanel.noValidate = true;
     editPanel.hidden = !state.openEdit[item.id];
@@ -209,27 +267,6 @@
     dlInput.type = 'date';
     dlInput.value = item.deadline;
     dlLabel.appendChild(dlInput);
-
-    var remLabel = el('label', '', 'Reminder date');
-    var remInput = el('input');
-    remInput.type = 'date';
-    remInput.value = item.reminderDate;
-    remLabel.appendChild(remInput);
-
-    var progLabel = el('label', '', 'Progress');
-    var rangeInput = el('input');
-    rangeInput.type = 'range';
-    rangeInput.min = '0';
-    rangeInput.max = '100';
-    rangeInput.step = '1';
-    rangeInput.value = String(item.progress);
-    var rangeOut = el('output', 'range-output', item.progress + '%');
-    rangeInput.addEventListener('input', function () { rangeOut.textContent = rangeInput.value + '%'; });
-    progLabel.appendChild(rangeInput);
-
-    var errBox = el('p', 'field-error');
-    errBox.setAttribute('role', 'alert');
-    errBox.hidden = true;
 
     var saveEditBtn = el('button', 'btn btn-primary btn-sm', tr('btn.save', 'Save'));
     saveEditBtn.type = 'submit';
@@ -241,28 +278,22 @@
     });
 
     editPanel.appendChild(dlLabel);
-    editPanel.appendChild(remLabel);
-    editPanel.appendChild(progLabel);
-    editPanel.appendChild(errBox);
     editPanel.appendChild(saveEditBtn);
     editPanel.appendChild(cancelEditBtn);
 
     editPanel.addEventListener('submit', function (e) {
       e.preventDefault();
       var dl = dlInput.value;
-      var rem = remInput.value;
-      if (dl && rem && rem > dl) {
-        errBox.textContent = tr('applications.reminderError', 'Reminder date cannot be after the deadline.');
-        errBox.hidden = false;
-        remInput.focus();
-        return;
-      }
       state.openEdit[item.id] = false;
-      updateItem(item.id, {
-        deadline: dl,
-        reminderDate: rem,
-        progress: Number(rangeInput.value)
-      }, tr('toast.saved', 'Changes saved.'));
+      api().updateApplication(item.id, { deadline: dl || null }).then(function (res) {
+        applyServerApp(item.id, res);
+        toast('success', tr('toast.saved', 'Changes saved.'));
+        render();
+      }, function (err) {
+        state.openEdit[item.id] = true;
+        toast('error', errorMessage(err));
+        render();
+      });
     });
 
     // Actions row
@@ -287,7 +318,11 @@
     });
 
     var viewLink = el('a', 'btn btn-ghost btn-sm', 'View Details');
-    viewLink.href = 'scheme-detail.html?id=' + encodeURIComponent(item.id);
+    if (item.schemeId) {
+      viewLink.href = 'scheme-detail.html?id=' + encodeURIComponent(item.schemeId);
+    } else {
+      viewLink.setAttribute('aria-disabled', 'true');
+    }
 
     var removeBtn = el('button', 'btn btn-danger btn-sm', 'Remove');
     removeBtn.type = 'button';
@@ -357,8 +392,9 @@
     els.applicationsList.textContent = '';
     visible.forEach(function (i) { els.applicationsList.appendChild(buildCard(i)); });
 
-    els.emptyState.hidden = state.items.length !== 0;
-    els.noMatch.hidden = !(state.items.length > 0 && visible.length === 0);
+    // On a load failure the error toast is the message; do not claim "no applications".
+    els.emptyState.hidden = state.loadFailed || state.items.length !== 0;
+    els.noMatch.hidden = state.loadFailed || !(state.items.length > 0 && visible.length === 0);
     els.applicationsList.hidden = visible.length === 0;
   }
 
@@ -383,8 +419,6 @@
     els.noMatch = document.getElementById('noMatch');
     els.clearFilters = document.getElementById('clearFilters');
 
-    els.loadingArea.hidden = false;
-    state.items = loadItems();
     applyLabels();
 
     els.searchInput.addEventListener('input', function () {
@@ -407,8 +441,7 @@
       render();
     });
 
-    render();
-    els.loadingArea.hidden = true;
+    loadApplications();
   }
 
   if (window.CivicAssist && typeof window.CivicAssist.registerPage === 'function') {

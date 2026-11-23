@@ -1,61 +1,35 @@
 /* results.js — logic for pages/results.html
- * Scheme data comes ONLY from CIVICASSIST_API. DEMO_SCHEMES is the sole sample
- * data and is shown only when the API returns an empty mock response. */
+ * Scheme matches come ONLY from CIVICASSIST_API.matchSchemes(profile).
+ * Each item of data.results is { scheme, status, matchedConditions, unmatchedConditions,
+ * missingInformation, reasoning }; the scheme document is in item.scheme (id: scheme._id). */
 (function () {
   'use strict';
 
   var CA = window.CivicAssist;
   var API = window.CIVICASSIST_API;
 
-  // Demonstration data only — never present as verified government data.
-  var DEMO_SCHEMES = [
-    {
-      id: 'demo-1',
-      name: 'Demonstration Scheme A — Education Support',
-      description: 'Illustrative sample entry for layout testing. It is not a real government scheme.',
-      state: 'Any state (demo)',
-      category: 'Education',
-      eligibility: 'Illustrative eligibility text: students within a demo age range.',
-      matchedConditions: ['Age within demo range'],
-      missingConditions: ['Income certificate (demo)'],
-      status: 'POSSIBLE_MATCH',
-      isDemo: true
-    },
-    {
-      id: 'demo-2',
-      name: 'Demonstration Scheme B — Livelihood Support',
-      description: 'Illustrative sample entry for layout testing. It is not a real government scheme.',
-      state: 'Any state (demo)',
-      category: 'Livelihood',
-      eligibility: 'Illustrative eligibility text: self-employed applicants (demo only).',
-      matchedConditions: ['Self-employed (demo)'],
-      missingConditions: [],
-      status: 'LIKELY_ELIGIBLE',
-      isDemo: true
-    },
-    {
-      id: 'demo-3',
-      name: 'Demonstration Scheme C — Housing Support',
-      description: 'Illustrative sample entry for layout testing. It is not a real government scheme.',
-      state: 'Any state (demo)',
-      category: 'Housing',
-      eligibility: 'Illustrative eligibility text: households without a pucca house (demo only).',
-      matchedConditions: [],
-      missingConditions: ['Household survey record (demo)'],
-      status: 'NOT_MATCHED',
-      isDemo: true
-    }
-  ];
-
   // TODO i18n: status labels
   var STATUS_META = {
-    LIKELY_ELIGIBLE: { cls: 'badge-success', label: 'Likely Eligible', rank: 0 },
-    POSSIBLE_MATCH: { cls: 'badge-warning', label: 'Possible Match — More Information Needed', rank: 1 },
-    NOT_MATCHED: { cls: 'badge-muted', label: 'Not Matched', rank: 2 }
+    likely_eligible: { cls: 'badge-success', label: 'Likely eligible', rank: 0 },
+    possible_match: { cls: 'badge-warning', label: 'Possible match', rank: 1 },
+    not_matched: { cls: 'badge-muted', label: 'Not matched', rank: 2 },
+    no_configured_rules: { cls: 'badge-muted', label: 'Eligibility rules not yet configured', rank: 3 }
+  };
+  // Unknown or missing status: neutral label, never a positive one.
+  var UNKNOWN_META = { cls: 'badge-muted', label: 'Status not available', rank: 4 };
+
+  var STATUS_EXPLANATION = {
+    likely_eligible: 'Based on the details you entered, you are likely eligible. This is not a guarantee; confirm with the official source.',
+    possible_match: 'More information is needed to confirm whether you qualify.',
+    not_matched: 'Your current profile does not meet the configured eligibility rules for this scheme.',
+    no_configured_rules: 'Eligibility rules for this scheme are not currently configured, so we cannot check your eligibility. Please check the official source below.'
   };
 
+  var NOT_AVAILABLE = 'Not currently available';
+  var NOT_PROVIDED = 'Not provided in scheme data';
+
   var dom = {};
-  var schemes = [];
+  var results = [];
   var byId = {};
   var ready = false;
 
@@ -68,13 +42,77 @@
   }
 
   function statusMeta(status) {
-    return STATUS_META[status] || STATUS_META.NOT_MATCHED;
+    return Object.prototype.hasOwnProperty.call(STATUS_META, status) ? STATUS_META[status] : UNKNOWN_META;
   }
 
-  function listHtml(items) {
-    return asList(items).map(function (item) {
-      return '<li>' + esc(item) + '</li>';
-    }).join('');
+  function resultScheme(r) {
+    return (r && r.scheme) || {};
+  }
+
+  function schemeId(r) {
+    var id = resultScheme(r)._id;
+    return id == null ? '' : String(id);
+  }
+
+  // Returns trimmed text, or '' for null/undefined/objects/whitespace-only values.
+  function cleanText(value) {
+    if (value == null) return '';
+    if (typeof value === 'string') return value.trim();
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    return '';
+  }
+
+  function textOrFallback(value, fallback) {
+    return esc(cleanText(value) || fallback);
+  }
+
+  function formatDate(value) {
+    var d = value instanceof Date ? value : null;
+    if (!d) {
+      var text = cleanText(value);
+      if (!text) return '';
+      d = new Date(text);
+    }
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  }
+
+  function dateText(value, fallback) {
+    return esc(formatDate(value) || fallback);
+  }
+
+  function sectionHtml(title, body) {
+    return '<h4 class="condition-title">' + esc(title) + '</h4>' + body;
+  }
+
+  function listBlock(title, items, ordered) {
+    var values = asList(items).map(cleanText).filter(function (v) { return v !== ''; });
+    var tag = ordered ? 'ol' : 'ul';
+    var body = values.length
+      ? '<' + tag + ' class="condition-list">' + values.map(function (v) {
+        return '<li>' + esc(v) + '</li>';
+      }).join('') + '</' + tag + '>'
+      : '<p class="text-muted">' + esc(NOT_PROVIDED) + '</p>';
+    return sectionHtml(title, body);
+  }
+
+  function benefitsHtml(benefits) {
+    if (Array.isArray(benefits)) return listBlock('Benefits', benefits);
+    return sectionHtml('Benefits', '<p>' + textOrFallback(benefits, NOT_PROVIDED) + '</p>');
+  }
+
+  function officialSourceHtml(url) {
+    var text = cleanText(url);
+    var body = /^https?:\/\//i.test(text)
+      ? '<p><a href="' + esc(text) + '" target="_blank" rel="noopener noreferrer">' + esc(text) + '</a></p>'
+      : '<p class="text-muted">' + esc(NOT_AVAILABLE) + '</p>';
+    return sectionHtml('Official source', body);
+  }
+
+  function verificationText(value) {
+    var v = cleanText(value);
+    if (v === 'verified') return 'Verified';
+    if (v === 'unverified') return 'Not yet verified against the official source';
+    return v ? esc(v) : esc(NOT_AVAILABLE);
   }
 
   function getSavedIds() {
@@ -82,25 +120,34 @@
     return Array.isArray(saved) ? saved : [];
   }
 
-  function cardHtml(s, savedIds) {
-    var meta = statusMeta(s.status);
-    var id = s.id == null ? '' : String(s.id);
+  function cardHtml(r, savedIds) {
+    var scheme = resultScheme(r);
+    var status = r && r.status;
+    var meta = statusMeta(status);
+    var explanation = Object.prototype.hasOwnProperty.call(STATUS_EXPLANATION, status)
+      ? STATUS_EXPLANATION[status]
+      : 'The eligibility status for this scheme is not available.';
+    var note = cleanText(r && r.verificationNote);
+    var id = schemeId(r);
     var isSaved = savedIds.indexOf(id) !== -1;
-    var demoBadge = s.isDemo === true
-      ? '<span class="badge-demo">Demonstration data</span>' // TODO i18n
-      : '';
 
     return '<div class="card scheme-card">' +
-      '<h3>' + esc(s.name) + '</h3>' +
-      demoBadge +
-      '<p class="text-muted">' + esc(s.description) + '</p>' +
+      '<h3>' + textOrFallback(scheme.name, NOT_PROVIDED) + '</h3>' +
       '<span class="badge ' + meta.cls + '">' + esc(meta.label) + '</span>' +
-      '<div class="scheme-meta"><span>' + esc(s.state) + '</span><span>' + esc(s.category) + '</span></div>' +
-      '<p>' + esc(s.eligibility) + '</p>' +
-      '<h4 class="condition-title">Matched conditions</h4>' + // TODO i18n
-      '<ul class="condition-list">' + listHtml(s.matchedConditions) + '</ul>' +
-      '<h4 class="condition-title">Missing conditions</h4>' + // TODO i18n
-      '<ul class="condition-list">' + listHtml(s.missingConditions) + '</ul>' +
+      '<div class="scheme-meta"><span>' + textOrFallback(scheme.category, NOT_PROVIDED) + '</span></div>' +
+      '<p>' + esc(explanation) + '</p>' +
+      '<p>' + textOrFallback(r && r.reasoning, NOT_PROVIDED) + '</p>' +
+      listBlock('Why this scheme matches you', r && r.matchedConditions) +
+      listBlock('What information is missing', r && r.missingInformation) +
+      listBlock('Conditions not met', r && r.unmatchedConditions) +
+      listBlock('What documents you need', scheme.requiredDocuments) +
+      listBlock('How to apply', scheme.applicationSteps, true) +
+      benefitsHtml(scheme.benefits) +
+      officialSourceHtml(scheme.officialSource) +
+      sectionHtml('Verification status', '<p>' + verificationText(scheme.verificationStatus) + '</p>') +
+      sectionHtml('Last verified', '<p>' + dateText(scheme.lastVerified, NOT_AVAILABLE) + '</p>') +
+      sectionHtml('Deadline', '<p>' + dateText(scheme.deadline, NOT_PROVIDED) + '</p>') +
+      (note ? '<p class="text-muted">' + esc(note) + '</p>' : '') +
       '<div class="scheme-actions">' +
         '<a class="btn btn-secondary btn-sm view-details-btn" data-id="' + esc(id) + '" ' +
           'href="scheme-detail.html?id=' + encodeURIComponent(id) + '">View Details</a>' +
@@ -113,7 +160,6 @@
   function readFilters() {
     return {
       q: dom.search.value.trim().toLowerCase(),
-      state: dom.state.value,
       category: dom.category.value,
       sort: dom.sort.value
     };
@@ -121,7 +167,7 @@
 
   function comparator(sort) {
     var byName = function (a, b) {
-      return String(a.name || '').localeCompare(String(b.name || ''));
+      return String(resultScheme(a).name || '').localeCompare(String(resultScheme(b).name || ''));
     };
     if (sort === 'name-asc') return byName;
     if (sort === 'name-desc') return function (a, b) { return byName(b, a); };
@@ -132,14 +178,14 @@
     };
   }
 
-  function filterSchemes(f) {
-    return schemes.filter(function (s) {
+  function filterResults(f) {
+    return results.filter(function (r) {
+      var scheme = resultScheme(r);
       if (f.q) {
-        var haystack = (String(s.name || '') + ' ' + String(s.description || '')).toLowerCase();
+        var haystack = (String(scheme.name || '') + ' ' + String(scheme.category || '')).toLowerCase();
         if (haystack.indexOf(f.q) === -1) return false;
       }
-      if (f.state && s.state !== f.state) return false;
-      if (f.category && s.category !== f.category) return false;
+      if (f.category && scheme.category !== f.category) return false;
       return true;
     }).sort(comparator(f.sort));
   }
@@ -147,7 +193,6 @@
   function writeUrl() {
     var params = new URLSearchParams();
     if (dom.search.value.trim()) params.set('q', dom.search.value.trim());
-    if (dom.state.value) params.set('state', dom.state.value);
     if (dom.category.value) params.set('category', dom.category.value);
     if (dom.sort.value !== 'match') params.set('sort', dom.sort.value);
     var qs = params.toString();
@@ -157,16 +202,15 @@
   function readUrl() {
     var params = new URLSearchParams(window.location.search);
     if (params.has('q')) dom.search.value = params.get('q');
-    if (params.has('state')) dom.state.value = params.get('state');
     if (params.has('category')) dom.category.value = params.get('category');
     if (params.has('sort')) dom.sort.value = params.get('sort');
   }
 
   function render() {
-    var list = filterSchemes(readFilters());
+    var list = filterResults(readFilters());
     var savedIds = getSavedIds();
-    dom.grid.innerHTML = list.map(function (s) { return cardHtml(s, savedIds); }).join('');
-    dom.count.textContent = list.length + ' of ' + schemes.length + ' schemes shown'; // TODO i18n
+    dom.grid.innerHTML = list.map(function (r) { return cardHtml(r, savedIds); }).join('');
+    dom.count.textContent = list.length + ' of ' + results.length + ' schemes shown'; // TODO i18n
     dom.empty.hidden = list.length !== 0;
     writeUrl();
   }
@@ -177,7 +221,6 @@
 
   function clearFilters() {
     dom.search.value = '';
-    dom.state.value = '';
     dom.category.value = '';
     dom.sort.value = 'match';
     applyFilters();
@@ -213,9 +256,22 @@
     }
     var detailLink = event.target.closest('.view-details-btn');
     if (detailLink) {
-      var scheme = byId[detailLink.getAttribute('data-id')];
-      if (scheme) CA.storage.set('scheme.selected', scheme);
+      var result = byId[detailLink.getAttribute('data-id')];
+      if (result) CA.storage.set('scheme.selected', resultScheme(result));
     }
+  }
+
+  // Inline message for an expired session; the grid stays in the DOM.
+  function showAuthError() {
+    var box = document.createElement('div');
+    box.className = 'card';
+    box.setAttribute('role', 'alert');
+    box.appendChild(document.createTextNode('Your session has expired. Please sign in again. ')); // TODO i18n
+    var link = document.createElement('a');
+    link.href = 'login.html';
+    link.textContent = 'Sign in'; // TODO i18n
+    box.appendChild(link);
+    dom.grid.parentNode.insertBefore(box, dom.grid);
   }
 
   async function loadSchemes(profile) {
@@ -224,22 +280,22 @@
     try {
       res = await API.matchSchemes(profile);
     } catch (err) {
-      CA.toast('error', CA.t('toast.networkError'));
       res = null;
+      var code = err && err.code;
+      if (err && err.status === 401) {
+        showAuthError();
+      } else if (code === 'NETWORK' || code === 'TIMEOUT') {
+        CA.toast('error', CA.t('toast.networkError'));
+      } else {
+        CA.toast('error', 'Could not load matching schemes'); // TODO i18n
+      }
     }
 
-    var items = res && Array.isArray(res.items) ? res.items : [];
-    if (items.length) {
-      schemes = items;
-    } else if (res && res._source === 'mock') {
-      schemes = DEMO_SCHEMES.slice();
-      dom.demoNotice.hidden = false;
-    } else {
-      schemes = [];
-    }
+    var list = res && res.data && Array.isArray(res.data.results) ? res.data.results : [];
+    results = list;
 
     byId = {};
-    schemes.forEach(function (s) { byId[String(s.id)] = s; });
+    results.forEach(function (r) { byId[schemeId(r)] = r; });
 
     setLoading(false);
     ready = true;
@@ -248,9 +304,7 @@
 
   function init() {
     dom.summary = document.getElementById('profileSummary');
-    dom.demoNotice = document.getElementById('demoNotice');
     dom.search = document.getElementById('searchInput');
-    dom.state = document.getElementById('stateFilter');
     dom.category = document.getElementById('categoryFilter');
     dom.sort = document.getElementById('sortSelect');
     dom.clearBtn = document.getElementById('clearFiltersBtn');
@@ -262,7 +316,6 @@
     dom.noProfile = document.getElementById('noProfile');
 
     dom.search.addEventListener('input', applyFilters);
-    dom.state.addEventListener('change', applyFilters);
     dom.category.addEventListener('change', applyFilters);
     dom.sort.addEventListener('change', applyFilters);
     dom.clearBtn.addEventListener('click', clearFilters);

@@ -13,6 +13,14 @@
 
   var CLOSED_STATUSES = ['APPROVED', 'REJECTED'];
 
+  var BACKEND_STATUS = {
+    not_started: 'NOT_STARTED',
+    in_progress: 'PREPARING_DOCUMENTS',
+    submitted: 'APPLIED',
+    approved: 'APPROVED',
+    rejected: 'REJECTED'
+  };
+
   var PROFILE_FIELDS = [
     { key: 'state', label: 'State' },
     { key: 'educationLevel', label: 'Education level' },
@@ -160,10 +168,30 @@
     return makeEl('span', 'badge badge-muted', code || 'Unknown');
   }
 
-  function normalizeApplications(list) {
-    return asArray(list).filter(function (app) {
-      return isObject(app);
-    });
+  function mapApplication(app) {
+    var scheme = isObject(app.schemeId) ? app.schemeId : {};
+    var rawId = isObject(app.schemeId) ? app.schemeId._id : app.schemeId;
+    return {
+      id: rawId != null ? String(rawId) : '',
+      name: scheme.name || '',
+      status: BACKEND_STATUS[app.status] || app.status,
+      deadline: app.deadline || null,
+      progress: app.progress || 0,
+      createdAt: app.createdAt || null
+    };
+  }
+
+  // Signed-out users have no server applications, so no request is made.
+  function loadApplications(signedIn) {
+    if (!signedIn) {
+      return Promise.resolve([]);
+    }
+    return Promise.resolve()
+      .then(function () { return window.CIVICASSIST_API.listApplications(); })
+      .then(function (res) {
+        var list = res && res.data && Array.isArray(res.data.applications) ? res.data.applications : [];
+        return list.filter(isObject).map(mapApplication);
+      });
   }
 
   function renderHero(session) {
@@ -239,10 +267,16 @@
     setHidden($('recEmpty'), items.length > 0);
   }
 
-  function renderApplications(apps) {
+  function renderApplications(apps, failed) {
     var list = $('appList');
     var items = apps.slice(0, APPLICATIONS_MAX);
     clearNode(list);
+
+    if (failed) {
+      // Do not show the "not started any applications" empty state on a failed load.
+      setHidden($('appEmpty'), true);
+      return;
+    }
 
     items.forEach(function (app) {
       var li = makeEl('li', 'dash-list-item');
@@ -378,7 +412,7 @@
     });
   }
 
-  function render() {
+  async function render() {
     var session = read('auth.session', null);
     var signedIn = isObject(session);
 
@@ -386,7 +420,15 @@
     var saved = asArray(read('saved.schemes', [])).filter(function (item) {
       return item !== null && item !== undefined && item !== '';
     });
-    var apps = normalizeApplications(read('applications.list', []));
+
+    var apps = [];
+    var appsFailed = false;
+    try {
+      apps = await loadApplications(signedIn);
+    } catch (err) {
+      appsFailed = true;
+      window.CivicAssist.toast('error', window.CivicAssist.t('toast.networkError'));
+    }
 
     renderHero(session);
     setPersonalVisibility(signedIn);
@@ -394,7 +436,7 @@
     var profilePercent = renderProfile(profile);
     renderStats(profilePercent, apps, saved.length);
     renderRecommended();
-    renderApplications(apps);
+    renderApplications(apps, appsFailed);
     renderChecklist(apps);
     renderDeadlines(apps);
     renderActivity(saved, apps);

@@ -1,13 +1,12 @@
 /*
- * CivicAssist demo authentication (frontend only).
+ * CivicAssist authentication (login and signup pages) backed by the real API.
  *
- * DEMO MODE: accounts live only in this browser's storage and are not real.
- * Passwords are validated and then discarded. They are never stored,
- * logged or sent anywhere.
+ * Calls go through api.js (window.CIVICASSIST_API). The JWT is stored by api.js
+ * under 'civicassist_token' and the user summary under 'civicassist_user'.
+ * Passwords are sent to the backend only; they are never stored or logged.
  *
- * Storage keys:
- *   auth.session       {name, email, loggedInAt}
- *   auth.users         [{name, email, createdAt}]  (deduped by lowercase email)
+ * Storage keys used here:
+ *   auth.session       {name, email, loggedInAt}  (display session mirrored for the header)
  *   auth.rememberEmail string (email only)
  */
 (function () {
@@ -16,7 +15,6 @@
   var CA = (window.CivicAssist = window.CivicAssist || {});
 
   var SESSION_KEY = 'auth.session';
-  var USERS_KEY = 'auth.users';
   var REMEMBER_KEY = 'auth.rememberEmail';
 
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -111,12 +109,8 @@
   }
 
   function notify(message) {
-    if (CA.toast && typeof CA.toast.success === 'function') {
-      CA.toast.success(message);
-      return;
-    }
     if (typeof CA.toast === 'function') {
-      CA.toast(message, 'success');
+      CA.toast('success', message);
       return;
     }
     var el = document.createElement('div');
@@ -135,78 +129,77 @@
     }
   }
 
-  function deriveName(email) {
-    var local = String(email).split('@')[0] || 'Citizen';
-    var words = local.replace(/[._-]+/g, ' ').trim().split(/\s+/);
-    return words
-      .map(function (w) {
-        return w ? w.charAt(0).toUpperCase() + w.slice(1) : '';
-      })
-      .join(' ')
-      .trim() || 'Citizen';
-  }
-
-  function getUsers() {
-    var list = readStore(USERS_KEY);
-    return Array.isArray(list) ? list : [];
-  }
-
-  // Adds a user to the demo list if the lowercase email is not present yet.
-  function upsertUser(name, email) {
-    var users = getUsers();
-    var key = email.toLowerCase();
-    var exists = users.some(function (u) {
-      return String(u.email || '').toLowerCase() === key;
-    });
-    if (!exists) {
-      users.push({ name: name, email: email, createdAt: new Date().toISOString() });
-      writeStore(USERS_KEY, users);
-    }
-  }
-
-  function findUserName(email) {
-    var key = email.toLowerCase();
-    var match = getUsers().filter(function (u) {
-      return String(u.email || '').toLowerCase() === key;
-    })[0];
-    return match && match.name ? match.name : deriveName(email);
-  }
-
-  /* ---------- session API (single backend integration points) ----------
-   * getSession(), login(email), logout(), signupDemo({name, email})
-   * These four functions are the only places that touch the session and user
-   * list. A real backend would replace their bodies with API calls.
-   * None of them accepts or stores a password.
+  /* ---------- session API (backend) ----------
+   * getSession(), login({email, password}), signup({name, email, password}), logout()
+   * Auth calls go through api.js, which stores the JWT under 'civicassist_token'
+   * and the user summary under 'civicassist_user'. A display session
+   * ('auth.session' = {name, email, loggedInAt}) is mirrored here for the header.
+   * Passwords are sent to the backend only and are never stored.
    */
+
+  function apiClient() {
+    return window.CIVICASSIST_API || null;
+  }
+
+  function serverUnavailable() {
+    return new Error('Cannot reach server. Check that the backend is running.');
+  }
+
+  function errorMessage(err) {
+    return err && err.message ? err.message : 'Something went wrong. Please try again.';
+  }
 
   function getSession() {
     var session = readStore(SESSION_KEY);
     return session && typeof session === 'object' ? session : null;
   }
 
-  function login(email) {
-    var clean = String(email || '').trim();
+  // Mirrors the backend user into the display session. Only name and email are kept.
+  function mirrorSession(user, fallback) {
     var session = {
-      name: findUserName(clean),
-      email: clean,
+      name: (user && user.name) || fallback.name || '',
+      email: (user && user.email) || fallback.email || '',
       loggedInAt: new Date().toISOString()
     };
     writeStore(SESSION_KEY, session);
     return session;
   }
 
+  function login(credentials) {
+    var api = apiClient();
+    if (!api) {
+      return Promise.reject(serverUnavailable());
+    }
+    var c = credentials || {};
+    var email = String(c.email || '').trim();
+    return api.login({ email: email, password: c.password }).then(function (res) {
+      mirrorSession(res && res.user, { email: email });
+      return res;
+    });
+  }
+
+  function signup(details) {
+    var api = apiClient();
+    if (!api) {
+      return Promise.reject(serverUnavailable());
+    }
+    var d = details || {};
+    var name = String(d.name || '').trim();
+    var email = String(d.email || '').trim();
+    return api.signup({ name: name, email: email, password: d.password }).then(function (res) {
+      mirrorSession(res && res.user, { name: name, email: email });
+      return res;
+    });
+  }
+
   function logout() {
+    var api = apiClient();
+    if (api && typeof api.logout === 'function') {
+      api.logout();
+    }
     removeStore(SESSION_KEY);
   }
 
-  function signupDemo(details) {
-    var name = String((details && details.name) || '').trim();
-    var email = String((details && details.email) || '').trim();
-    upsertUser(name, email);
-    var session = { name: name, email: email, loggedInAt: new Date().toISOString() };
-    writeStore(SESSION_KEY, session);
-    return session;
-  }
 
   /* ---------- shared UI wiring ---------- */
 
@@ -295,18 +288,19 @@
         removeStore(REMEMBER_KEY);
       }
 
-      login(email);
-      passwordEl.value = '';
-      refreshAccount();
-
       btn.disabled = true;
       btn.textContent = 'Logging in…';
-      notify('Logged in in demo mode.');
-      setTimeout(function () {
+      login({ email: email, password: passwordEl.value }).then(function () {
+        passwordEl.value = '';
+        refreshAccount();
+        notify('Logged in.');
+        redirectLater(300);
+      }, function (err) {
         btn.disabled = false;
         btn.textContent = btnLabel;
-      }, 300);
-      redirectLater(300);
+        setFieldError('loginPassword', errorMessage(err));
+        passwordEl.focus();
+      });
     });
   }
 
@@ -396,14 +390,22 @@
         return;
       }
 
-      signupDemo({ name: nameEl.value.trim(), email: emailEl.value.trim() });
-      passwordEl.value = '';
-      confirmEl.value = '';
-      refreshAccount();
-
       btn.disabled = true;
-      notify('Account created in demo mode.');
-      redirectLater(400);
+      signup({
+        name: nameEl.value.trim(),
+        email: emailEl.value.trim(),
+        password: passwordEl.value
+      }).then(function () {
+        passwordEl.value = '';
+        confirmEl.value = '';
+        refreshAccount();
+        notify('Account created.');
+        redirectLater(400);
+      }, function (err) {
+        btn.disabled = false;
+        setFieldError('signupEmail', errorMessage(err));
+        emailEl.focus();
+      });
     });
   }
 
@@ -450,8 +452,8 @@
   CA.auth = {
     getSession: getSession,
     login: login,
-    logout: logout,
-    signupDemo: signupDemo
+    signup: signup,
+    logout: logout
   };
 
   function init() {

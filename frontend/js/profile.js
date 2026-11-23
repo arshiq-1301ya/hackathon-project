@@ -1,4 +1,5 @@
-/* Profile review page: show extracted profile, let the user correct it, confirm and continue. */
+/* Profile review page: load the saved profile from the backend (or the local draft),
+   let the user correct it, save it to the backend, then continue. */
 (function () {
   'use strict';
 
@@ -13,10 +14,15 @@
     return value === null || value === undefined || String(value).trim() === '';
   }
 
+  function apiClient() {
+    return window.CIVICASSIST_API || null;
+  }
+
   CA.registerPage(function initProfile() {
     var form = document.getElementById('profileForm');
     var emptyState = document.getElementById('emptyState');
     var demoBanner = document.getElementById('demoBanner');
+    var submitBtn = form ? form.querySelector('button[type="submit"]') : null;
     var controls = {};
 
     FIELDS.forEach(function (name) {
@@ -42,7 +48,7 @@
       return out;
     }
 
-    // Normalised values for storage: income becomes a number or null.
+    // Canonical values for the backend: income becomes a number or null.
     function collect() {
       var raw = readRaw();
       return {
@@ -102,27 +108,55 @@
       }
     }
 
-    var draft = CA.storage.get(DRAFT_KEY, null);
-    var profile = CA.storage.get(CONFIRMED_KEY, null) || draft;
+    function notifyUser(type, message) {
+      if (typeof CA.toast === 'function') {
+        CA.toast(type, message);
+      }
+    }
 
-    if (!profile) {
+    // Fills the six fields; empty values are marked missing.
+    function fillForm(profile, isDemo) {
+      FIELDS.forEach(function (name) {
+        var raw = profile[name];
+        var blank = isBlank(raw);
+        controls[name].value = blank ? '' : String(raw);
+        setMissing(name, blank);
+      });
+      if (demoBanner) {
+        demoBanner.hidden = !isDemo;
+      }
+      emptyState.hidden = true;
+      form.hidden = false;
+    }
+
+    function showEmpty() {
       emptyState.hidden = false;
       form.hidden = true;
+    }
+
+    function redirectToLogin() {
+      window.location.href = 'login.html';
+    }
+
+    var api = apiClient();
+    if (!api || !api.getToken || !api.getToken()) {
+      redirectToLogin();
       return;
     }
 
-    FIELDS.forEach(function (name) {
-      var raw = profile[name];
-      var blank = isBlank(raw);
-      controls[name].value = blank ? '' : String(raw);
-      setMissing(name, blank);
-    });
+    var draft = CA.storage.get(DRAFT_KEY, null);
+    var localProfile = CA.storage.get(CONFIRMED_KEY, null) || draft;
+    var localIsDemo = !!(draft && draft.isDemonstration);
 
-    if (draft && draft.isDemonstration) {
-      demoBanner.hidden = false;
+    function useLocal() {
+      if (!localProfile) {
+        showEmpty();
+        return;
+      }
+      fillForm(localProfile, localIsDemo);
     }
 
-    // Clear errors and update missing markers as the user edits; save each change.
+    // Clear errors and update missing markers as the user edits; save each change locally.
     function onEdit(event) {
       var name = event.target.name;
       if (FIELDS.indexOf(name) === -1) {
@@ -135,6 +169,23 @@
     form.addEventListener('input', onEdit);
     form.addEventListener('change', onEdit);
 
+    api.getProfile().then(function (data) {
+      if (data && data.exists && data.profile) {
+        CA.storage.set(CONFIRMED_KEY, data.profile);
+        fillForm(data.profile, false);
+      } else {
+        useLocal();
+      }
+    }, function (err) {
+      if (err && err.status === 401) {
+        api.logout();
+        redirectToLogin();
+        return;
+      }
+      useLocal();
+      notifyUser('error', (err && err.message) || 'Could not load your saved profile.');
+    });
+
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       clearAllErrors();
@@ -146,8 +197,28 @@
         return;
       }
 
-      CA.storage.set(CONFIRMED_KEY, collect());
-      window.location.href = 'results.html';
+      var payload = collect();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+      api.saveProfile(payload).then(function (data) {
+        var saved = data && data.profile ? data.profile : payload;
+        CA.storage.set(CONFIRMED_KEY, saved);
+        notifyUser('success', 'Profile saved.');
+        setTimeout(function () {
+          window.location.href = 'results.html';
+        }, 600);
+      }, function (err) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+        if (err && err.status === 401) {
+          api.logout();
+          redirectToLogin();
+          return;
+        }
+        notifyUser('error', (err && err.message) || 'Could not save your profile. Please try again.');
+      });
     });
   });
 })();

@@ -151,31 +151,17 @@
     }
 
     function saveApplication() {
-      var list = CA.storage.get('applications.list', []);
-      if (!Array.isArray(list)) {
-        list = [];
-      }
-      var appId = String(scheme.id != null ? scheme.id : id);
-      var exists = list.some(function (app) {
-        return app && String(app.id) === appId;
-      });
-
-      if (exists) {
-        CA.toast('info', 'This application is already saved.'); // TODO i18n
-        return;
-      }
-
-      list.push({
-        id: appId,
-        name: scheme.name || scheme.title || appId,
-        status: 'NOT_STARTED',
-        deadline: null,
-        reminderDate: null,
-        progress: 0,
-        createdAt: new Date().toISOString()
-      });
-      CA.storage.set('applications.list', list);
-      CA.toast('success', tr('toast.success.default', 'Saved successfully.'));
+      Promise.resolve()
+        .then(function () { return API.createApplication({ schemeId: id }); })
+        .then(function () {
+          CA.toast('success', tr('toast.success.default', 'Saved successfully.'));
+        }, function (err) {
+          if (err && err.status === 409) {
+            CA.toast('info', 'This application is already saved.'); // TODO i18n
+          } else {
+            CA.toast('error', (err && err.message) || CA.t('toast.networkError'));
+          }
+        });
     }
 
     if (!id) {
